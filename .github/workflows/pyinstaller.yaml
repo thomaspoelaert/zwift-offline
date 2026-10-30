@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'master'
+      - 'video-build'
     tags:
       - '*'
 
