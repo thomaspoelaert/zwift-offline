@@ -50,8 +50,13 @@ class DNSServer:
         server = socketserver.ThreadingUDPServer((HOST, PORT), DNSUDPHandler)
         server.serve_forever()
 
-def fake_dns(server_ip):
+def fake_dns(server_ip, extra_domains=None):
     dns = DNSServer()
     dns.addname('secure.zwift.com.', server_ip)
     dns.addname('us-or-rly101.zwift.com.', server_ip)
+    if extra_domains:
+        for domain in extra_domains:
+            name = domain if domain.endswith('.') else domain + '.'
+            dns.addname(name, server_ip)
+            print('[DNS] Added video cache redirect: %s -> %s' % (domain, server_ip))
     dns.start()

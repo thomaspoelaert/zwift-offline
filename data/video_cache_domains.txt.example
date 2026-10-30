@@ -1,0 +1,16 @@
+# Zwift Video Cache - CDN Domain Configuration
+#
+# Add one domain per line. These are the CDN domains that serve
+# Zwift Video streaming content. Use zwift_video_capture.py to
+# discover the actual domains used by your Zwift client.
+#
+# Likely candidates (verify with capture tool before enabling):
+# video.zwift.com
+# media.zwift.com
+# zwift-video.akamaized.net
+# d1xxxxxxxxx.cloudfront.net
+#
+# After adding domains:
+# 1. Copy this file to video_cache_domains.txt (remove .example)
+# 2. Create an empty file: video-cache.txt (to enable caching)
+# 3. Restart zwift-offline

@@ -32,6 +32,18 @@ else:
 
 CDN_DIR = "%s/cdn" % SCRIPT_DIR
 CDN_PROXY = os.path.isfile('%s/cdn-proxy.txt' % STORAGE_DIR)
+
+# Video cache setup
+from video_cache import VideoCacheConfig, VideoCache, VideoCacheHandler
+VIDEO_CACHE_CONFIG = VideoCacheConfig(STORAGE_DIR)
+VIDEO_CACHE = None
+if VIDEO_CACHE_CONFIG.enabled and VIDEO_CACHE_CONFIG.domains:
+    VIDEO_CACHE = VideoCache(VIDEO_CACHE_CONFIG)
+    VideoCacheHandler.video_cache = VIDEO_CACHE
+    print('[VideoCache] Enabled for domains: %s' % ', '.join(VIDEO_CACHE_CONFIG.domains))
+elif VIDEO_CACHE_CONFIG.enabled:
+    print('[VideoCache] Enabled but no domains configured in storage/video_cache_domains.txt')
+    print('[VideoCache] Run: python zwift_video_capture.py to discover video CDN domains')
 if not CDN_PROXY and not os.path.isfile('%s/disable_proxy.txt' % STORAGE_DIR):
     # If CDN proxy is disabled, try to resolve zwift.com using Google public DNS
     try:
@@ -829,6 +841,15 @@ zoffline_thread = threading.Thread(target=httpd.serve_forever)
 zoffline_thread.daemon = True
 zoffline_thread.start()
 
+if VIDEO_CACHE is not None:
+    video_host = os.environ.get('ZOFFLINE_VIDEO_HOST', SERVER_HOST)
+    video_port = int(os.environ.get('ZOFFLINE_VIDEO_PORT', 8080))
+    video_httpd = socketserver.ThreadingTCPServer((video_host, video_port), VideoCacheHandler)
+    video_thread = threading.Thread(target=video_httpd.serve_forever)
+    video_thread.daemon = True
+    video_thread.start()
+    print('[VideoCache] HTTP proxy on %s:%s' % (video_host or '0.0.0.0', video_port))
+
 tcp_host = os.environ.get('ZOFFLINE_TCP_HOST', SERVER_HOST)
 tcp_port = int(os.environ.get('ZOFFLINE_TCP_PORT', 3025))
 tcpserver = socketserver.ThreadingTCPServer((tcp_host, tcp_port), TCPHandler)
@@ -848,7 +869,8 @@ ri.start()
 
 if os.path.exists(FAKE_DNS_FILE):
     from fake_dns import fake_dns
-    dns = threading.Thread(target=fake_dns, args=(zo.server_ip,))
+    video_domains = VIDEO_CACHE_CONFIG.domains if VIDEO_CACHE is not None else None
+    dns = threading.Thread(target=fake_dns, args=(zo.server_ip, video_domains))
     dns.start()
 
 zo.run_standalone(online, global_relay, global_pace_partners, global_bots, global_ghosts, regroup_ghosts, discord)
