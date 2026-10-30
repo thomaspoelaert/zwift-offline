@@ -1551,6 +1551,25 @@ def api_assetcms(path):
         return jsonify({'intervalsicu': 'Intervals.icu'})
     return jsonify()
 
+@app.route('/api/video-cache/stats', methods=['GET'])
+def api_video_cache_stats():
+    try:
+        from video_cache import VideoCacheConfig, VideoCache
+        config = VideoCacheConfig(STORAGE_DIR)
+        if not config.enabled:
+            return jsonify({'enabled': False, 'message': 'Video cache not enabled. Create storage/video-cache.txt to enable.'})
+        if not config.domains:
+            return jsonify({'enabled': True, 'domains': [], 'message': 'No domains configured. Run zwift_video_capture.py first.'})
+        cache = VideoCache(config)
+        stats = cache.get_stats()
+        stats['enabled'] = True
+        stats['domains'] = config.domains
+        stats['max_size_gb'] = config.max_size_gb
+        stats['max_quality'] = config.max_quality
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 def current_planned_workouts():
     if request.args.get('sport', 'CYCLING').upper() != 'CYCLING':
         return []

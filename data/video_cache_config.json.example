@@ -1,0 +1,14 @@
+{
+    "max_size_gb": 50,
+    "max_quality": null,
+    "passthrough_manifests": false,
+    "_comment_max_quality": "Set to '720p', '1080p', '1440p', or '4k' to limit video quality and reduce data usage. null = no limit.",
+    "_comment_max_size_gb": "Maximum cache size in GB. Oldest segments are evicted when exceeded.",
+    "_comment_passthrough_manifests": "If true, always fetch fresh HLS/DASH manifests (useful if Zwift changes routes). If false, cache manifests too.",
+    "_comment_bandwidth_estimates": {
+        "720p": "~1.4 GB/hour",
+        "1080p": "~3.6 GB/hour",
+        "1440p": "~7.2 GB/hour",
+        "4k": "~18 GB/hour"
+    }
+}
